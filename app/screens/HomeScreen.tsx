@@ -9,10 +9,10 @@ import {
   TouchableOpacity,
   Alert,
 } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import { useSelector } from 'react-redux';
+import { RootState } from '../store/store'; // Import the RootState type from your Redux store
 import { getAllServices, getOneService } from '../../apiService/apiService';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import { useRoute, RouteProp } from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
 
 interface Service {
   _id: string;
@@ -23,44 +23,13 @@ interface Service {
   category: string;
 }
 
-interface User {
-  firstname: string;
-}
-
-type RootStackParamList = {
-  Home: { user?: User };
-  CreateBooking: { screen: string; params: { service: any } };
-};
-
-const cleanDescription = (description: string) => {
-  return description
-    .replace(/<[^>]+>/g, '')
-    .replace(/\s+/g, ' ')
-    .trim();
-};
-
 const HomeScreen: React.FC = () => {
-  const route = useRoute<RouteProp<RootStackParamList, 'Home'>>();
   const navigation = useNavigation();
+  const user = useSelector((state: RootState) => state.user.userData); // Access user data from Redux store
   const [services, setServices] = useState<Service[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
-  const [user, setUser] = useState<User | null>(null);
 
   useEffect(() => {
-    if (route.params?.user) {
-      setUser(route.params?.user);
-    } else {
-      const fetchUser = async () => {
-        try {
-          const userData = await AsyncStorage.getItem('user');
-          if (userData) setUser(JSON.parse(userData));
-        } catch (error) {
-          console.error('Failed to load user data', error);
-        }
-      };
-      fetchUser();
-    }
-
     const fetchServices = async () => {
       try {
         const response = await getAllServices();
@@ -76,16 +45,6 @@ const HomeScreen: React.FC = () => {
     fetchServices();
   }, []);
 
-  // const handleBookNow = async (serviceId: string) => {
-  //   try {
-  //     const response = await getOneService(serviceId);
-  //     const serviceData = response.data.service;
-  //     navigation.navigate('CreateBooking', { screen: 'CreateBooking', params: { service: serviceData } });
-  //   } catch (error) {
-  //     Alert.alert('Error', 'Unable to load service details.');
-  //     console.error('Failed to load service details:', error);
-  //   }
-  // };
   const handleViewDetails = async (serviceId: string) => {
     try {
       const response = await getOneService(serviceId);
@@ -96,6 +55,7 @@ const HomeScreen: React.FC = () => {
       console.error('Failed to load service details:', error);
     }
   };
+
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
@@ -166,31 +126,6 @@ const styles = StyleSheet.create({
     marginTop: 8,
     borderRadius: 8,
     backgroundColor: '#f0f0f0',
-  },
-  bookButton: {
-    backgroundColor: '#f0ad4e',
-    padding: 10,
-    borderRadius: 5,
-    marginTop: 10,
-    alignItems: 'center',
-  },
-  bookButtonText: {
-    color: '#fff',
-    fontWeight: 'bold',
-  },
-  descriptionHeader: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    marginTop: 8,
-  },
-  descriptionList: {
-    marginTop: 8,
-  },
-  descriptionItem: {
-    fontSize: 14,
-    color: '#555',
-    marginBottom: 4,
-    lineHeight: 20,
   },
 });
 

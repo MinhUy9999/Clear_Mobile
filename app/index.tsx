@@ -3,11 +3,12 @@ import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import Icon from 'react-native-vector-icons/Ionicons';
+import { Provider } from 'react-redux';
+
 
 // Import Screens
 import OnboardingScreen from './screens/OnboardingScreen';
 import HomeScreen from './screens/HomeScreen';
-
 import BookingScreen from './screens/BookingScreen';
 import ProfileScreen from './screens/ProfileScreen';
 import RegisterScreen from './screens/RegisterScreen';
@@ -16,6 +17,7 @@ import ForgotPasswordScreen from './screens/ForgotPasswordScreen';
 import ResetPasswordScreen from './screens/ResetPasswordScreen';
 import CreateBookingScreen from './screens/CreateBookingScreen';
 import ServiceDetailsScreen from './screens/ServiceDetailsScreen';
+import store from './store/store';
 
 // Stack and Tab Navigators
 const Stack = createStackNavigator();
@@ -45,8 +47,6 @@ const TabNavigator = () => (
     })}
   >
     <Tab.Screen name="Home" component={HomeScreen} />
-
-    
     <Tab.Screen name="Booking" component={BookingScreen} />
     <Tab.Screen name="Profile" component={ProfileScreen} />
   </Tab.Navigator>
@@ -55,26 +55,28 @@ const TabNavigator = () => (
 // Main Stack Navigator Component
 const App = () => {
   return (
-  
-      <Stack.Navigator initialRouteName="Onboarding">
-        <Stack.Screen
-          name="Onboarding"
-          component={OnboardingScreen}
-          options={{ headerShown: false }}
-        />
-        <Stack.Screen
-          name="Main"
-          component={TabNavigator}
-          options={{ headerShown: false }}
-        />
-         <Stack.Screen name="Register" component={RegisterScreen} />
-         <Stack.Screen name="Login" component={LoginScreen} />
-         <Stack.Screen name="ForgotPassword" component={ForgotPasswordScreen} />
-         <Stack.Screen name="ResetPassword" component={ResetPasswordScreen} />
-         <Stack.Screen name="CreateBooking" component={CreateBookingScreen} />
-         <Stack.Screen name="ServiceDetails" component={ServiceDetailsScreen} />
-      </Stack.Navigator>
-   
+    <Provider store={store}> {/* Wrap the app with Redux Provider */}
+     
+        <Stack.Navigator initialRouteName="Onboarding">
+          <Stack.Screen
+            name="Onboarding"
+            component={OnboardingScreen}
+            options={{ headerShown: false }}
+          />
+          <Stack.Screen
+            name="Main"
+            component={TabNavigator}
+            options={{ headerShown: false }}
+          />
+          <Stack.Screen name="Register" component={RegisterScreen} />
+          <Stack.Screen name="Login" component={LoginScreen} />
+          <Stack.Screen name="ForgotPassword" component={ForgotPasswordScreen} />
+          <Stack.Screen name="ResetPassword" component={ResetPasswordScreen} />
+          <Stack.Screen name="CreateBooking" component={CreateBookingScreen} />
+          <Stack.Screen name="ServiceDetails" component={ServiceDetailsScreen} />
+        </Stack.Navigator>
+     
+    </Provider>
   );
 };
 

@@ -7,199 +7,193 @@ import {
   StyleSheet,
   Alert,
   ActivityIndicator,
+  Image,
 } from 'react-native';
 import { NavigationProp } from '@react-navigation/native';
 import { loginUser } from '../../apiService/apiUser';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useDispatch } from 'react-redux';
+import { setUser } from '../store/slices/userSlice';
 
 const LoginScreen = ({ navigation }: { navigation: NavigationProp<any> }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [passwordVisible, setPasswordVisible] = useState(false);
-
+  const dispatch = useDispatch();
   const handleLogin = async () => {
     if (!email || !password) {
       Alert.alert('Error', 'Please enter both email and password');
       return;
     }
-
+  
     try {
       setLoading(true);
       const response = await loginUser(email, password);
-      console.log('Full login response:', response);
       const userData = response.data.userData;
       Alert.alert('Login successful');
-      navigation.navigate('Home');
-      console.log('User data from API:', userData);
-      await AsyncStorage.setItem('user', JSON.stringify(userData));
-      await AsyncStorage.setItem('firstname', userData.firstname);
+      dispatch(setUser(userData));
+      // Navigate to Home and pass user data
+      navigation.navigate('Home', { user: userData });
+  
+      // Store user data in AsyncStorage
+     
       setLoading(false);
     } catch (error: any) {
       setLoading(false);
       Alert.alert('Login failed', error.response?.data?.mes || 'Something went wrong');
     }
   };
+  
 
   return (
-    <View style={styles.background}>
-      <View style={styles.container}>
-        {/* Logo */}
-        <View style={styles.logoContainer}>
-          <View style={styles.logo} />
-        </View>
+    <View style={styles.container}>
+      {/* Header Section */}
+      <View style={styles.header}>
+        <Image source={require('../../assets/images/logo.png')} style={styles.headerImage} />
+        <Text style={styles.headerTitle}>Cleeny</Text>
+        <Text style={styles.headerSubtitle}>Cleaning Service Booking App</Text>
+      </View>
 
-        {/* Tabs for Sign In and Sign Up */}
-        <View style={styles.tabContainer}>
-          <TouchableOpacity style={styles.activeTab}>
-            <Text style={styles.activeTabText}>Sign In</Text>
-          </TouchableOpacity>
-          <TouchableOpacity onPress={() => navigation.navigate('Register')} style={styles.inactiveTab}>
-            <Text style={styles.inactiveTabText}>Sign Up</Text>
-          </TouchableOpacity>
-        </View>
-
-        {/* Email Input */}
-        <TextInput
-          style={styles.input}
-          placeholder="Email"
-          placeholderTextColor="#888"
-          value={email}
-          onChangeText={setEmail}
-          keyboardType="email-address"
-          autoCapitalize="none"
-        />
-
-        {/* Password Input with Eye Icon */}
-        <View style={styles.passwordContainer}>
+      {/* Input Section */}
+      <View style={styles.formContainer}>
+        <View style={styles.inputContainer}>
+          <Icon name="email-outline" size={24} color="#6C757D" style={styles.inputIcon} />
           <TextInput
-            style={styles.passwordInput}
+            style={styles.input}
+            placeholder="Email or Phone"
+            placeholderTextColor="#6C757D"
+            value={email}
+            onChangeText={setEmail}
+            keyboardType="email-address"
+            autoCapitalize="none"
+          />
+        </View>
+
+        <View style={styles.inputContainer}>
+          <Icon name="lock-outline" size={24} color="#6C757D" style={styles.inputIcon} />
+          <TextInput
+            style={styles.input}
             placeholder="Password"
-            placeholderTextColor="#888"
+            placeholderTextColor="#6C757D"
             secureTextEntry={!passwordVisible}
             value={password}
             onChangeText={setPassword}
           />
-        <TouchableOpacity style={styles.eyeIcon} onPress={() => setPasswordVisible(!passwordVisible)}>
-    <Icon name={passwordVisible ? 'eye' : 'eye-off'} size={24} color="#888" />
-  </TouchableOpacity>
+          <TouchableOpacity style={styles.eyeIcon} onPress={() => setPasswordVisible(!passwordVisible)}>
+            <Icon name={passwordVisible ? 'eye' : 'eye-off'} size={24} color="#6C757D" />
+          </TouchableOpacity>
         </View>
-        {/* Sign In Button with Loading Indicator */}
-        <TouchableOpacity style={styles.signInButton} onPress={handleLogin} disabled={loading}>
-          {loading ? <ActivityIndicator color="#FFF" /> : <Text style={styles.signInButtonText}>Sign In</Text>}
-        </TouchableOpacity>
 
-        {/* Forgot Password Link */}
         <TouchableOpacity onPress={() => navigation.navigate('ForgotPassword')}>
-          <Text style={styles.forgotPasswordText}>Forgot your password?</Text>
+          <Text style={styles.forgotPasswordText}>Forgot Password?</Text>
         </TouchableOpacity>
       </View>
+
+      {/* Action Buttons */}
+      <TouchableOpacity
+        style={[styles.actionButton, styles.loginButton]}
+        onPress={handleLogin}
+        disabled={loading}
+      >
+        {loading ? <ActivityIndicator color="#FFF" /> : <Text style={styles.actionButtonText}>Login</Text>}
+      </TouchableOpacity>
+      <Text style={styles.orText}>or</Text>
+      <TouchableOpacity
+        style={[styles.actionButton, styles.createAccountButton]}
+        onPress={() => navigation.navigate('Register')}
+      >
+        <Text style={styles.actionButtonText}>Create an account</Text>
+      </TouchableOpacity>
     </View>
   );
 };
 
 const styles = StyleSheet.create({
-  background: {
-    flex: 1,
-    backgroundColor: '#FFFFFF', // Set background color to white
-  
-  },
   container: {
     flex: 1,
+    backgroundColor: '#E9F5F8',
     justifyContent: 'center',
     alignItems: 'center',
     padding: 20,
   },
-  logoContainer: {
-    marginBottom: 30,
+  header: {
     alignItems: 'center',
-    justifyContent: 'center',
+    marginBottom: 40,
   },
-  logo: {
-    width: 100,
-    height: 100,
-    backgroundColor: '#3366FF', // Replace with an actual logo image or placeholder
-    borderRadius: 50,
+  headerImage: {
+    width: '80%', 
+    height: undefined, 
+    aspectRatio: 1, 
+    resizeMode: 'contain', 
+    marginBottom: 10,
   },
-  tabContainer: {
-    flexDirection: 'row',
+  headerTitle: {
+    fontSize: 32,
+    fontWeight: '700',
+    color: '#3E4E5E',
+  },
+  headerSubtitle: {
+    fontSize: 16,
+    fontWeight: '400',
+    color: '#3E4E5E',
+  },
+  formContainer: {
+    width: '100%',
     marginBottom: 20,
   },
-  activeTab: {
-    marginRight: 20,
-    borderBottomWidth: 2,
-    borderBottomColor: '#3366FF',
+  inputContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#FFF',
+    borderRadius: 25,
+    borderWidth: 1,
+    borderColor: '#CED4DA',
+    marginBottom: 15,
+    paddingHorizontal: 20,
+    height: 50,
+    width: '100%',
   },
-  inactiveTab: {
-    marginLeft: 20,
-  },
-  activeTabText: {
-    fontSize: 18,
-    color: '#3366FF',
-  },
-  inactiveTabText: {
-    fontSize: 18,
-    color: '#888',
+  inputIcon: {
+    marginRight: 10,
   },
   input: {
-    width: '100%',
-    height: 50,
-    backgroundColor: '#FFF',
-    borderRadius: 8,
-    paddingHorizontal: 15,
-    marginBottom: 15,
+    flex: 1,
     fontSize: 16,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 2,
-  },
-  passwordContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    width: '110%',
-    backgroundColor: '#FFF',
-    borderRadius: 8,
-    paddingHorizontal: 15,
-    marginBottom: 15,
-  },
-  passwordInput: {
-    width: '100%',
-    height: 50,
-    backgroundColor: '#FFF',
-    borderRadius: 8,
-    paddingHorizontal: 15,
-    marginBottom: 15,
-    fontSize: 16,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 2,
+    color: '#212529',
   },
   eyeIcon: {
-    position: 'absolute',
-    right: 30, 
-    bottom: 20
-  },
-  signInButton: {
-    backgroundColor: '#3366FF',
-    width: '100%',
-    height: 50,
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderRadius: 8,
-    marginBottom: 20,
-  },
-  signInButtonText: {
-    color: '#FFF',
-    fontSize: 18,
+    marginLeft: 10,
   },
   forgotPasswordText: {
-    color: '#888',
+    color: '#6C757D',
     fontSize: 14,
+    textAlign: 'right',
+    marginTop: 5,
+  },
+  actionButton: {
+    width: '100%',
+    height: 50,
+    borderRadius: 25,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 10,
+  },
+  loginButton: {
+    backgroundColor: '#3E4E5E',
+  },
+  createAccountButton: {
+    backgroundColor: '#A9D5E6',
+  },
+  actionButtonText: {
+    color: '#FFF',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  orText: {
+    fontSize: 16,
+    color: '#6C757D',
+    marginVertical: 10,
   },
 });
 
